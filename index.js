@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
- const cors = require('cors');
- require('dotenv').config()
+const cors = require('cors');
+require('dotenv').config()
 const port = process.env.PORT || 5000;
 //  middleware
 app.use(cors());
@@ -28,15 +28,25 @@ async function run() {
 
     const menuCollection = client.db("Bistrodb").collection("menu");
     const reviewCollection = client.db("Bistrodb").collection("reviews");
+    const cartCollection = client.db("Bistrodb").collection("carts");
 
-    app.get('/menu', async(req, res) => {
-        const result = await menuCollection.find().toArray();
-        res.send(result);
+    app.get('/menu', async (req, res) => {
+      const result = await menuCollection.find().toArray();
+      res.send(result);
     })
 
-    app.get('/reviews', async(req, res) => {
-        const result = await reviewCollection.find().toArray();
-        res.send(result);
+    app.get('/reviews', async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result);
+    })
+
+
+    // cart collection
+    app.post('/carts', async (req, res) => {
+      const cart = req.body;
+      // console.log(item);
+      const result = await cartCollection.insertOne(cart);
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
@@ -51,9 +61,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('boss going to connect server')
+  res.send('boss going to connect server')
 })
 
 app.listen(port, () => {
-    console.log(`Bistro Boss is conneted to port ${port}`);
+  console.log(`Bistro Boss is conneted to port ${port}`);
 })
