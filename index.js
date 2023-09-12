@@ -183,8 +183,27 @@ async function run() {
     // payment collection
     app.post('/payments', verifyJWT, async (req, res) => {
       const payment = req.body;
-      const result = await paymentCollection.insertOne(payment);
-      res.send(result);
+      const insertResult = await paymentCollection.insertOne(payment);
+
+      const query = {_id: { $in: payment.cartItems.map(id => new ObjectId(id))}};
+      const deleteResult = await cartCollection.deleteMany(query);
+
+      res.send({ insertResult, deleteResult});
+    });
+    // Admin stats
+    app.get('/admin-stats', verifyJWT, verifyAdmin, async (req,res) => {
+      const users = await usersCollection.estimatedDocumentCount();
+      const products = await menuCollection.estimatedDocumentCount();
+      const orders = await paymentCollection.estimatedDocumentCount();
+
+      const payments = await paymentCollection.find().toArray();
+      const revenue = payments.reduce( (sum, payment) => sum + payment.price, 0)
+      res.send({
+        revenue,
+        users,
+        products,
+        orders
+      })
     })
 
     // Send a ping to confirm a successful connection
