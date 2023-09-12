@@ -48,6 +48,7 @@ async function run() {
     const menuCollection = client.db("Bistrodb").collection("menu");
     const reviewCollection = client.db("Bistrodb").collection("reviews");
     const cartCollection = client.db("Bistrodb").collection("carts");
+    const paymentCollection = client.db("Bistrodb").collection("payments");
 
 // jwt token verify
 
@@ -165,7 +166,7 @@ async function run() {
     })
 
     // create payment intent
-    app.post('/create-payment-intent', async (req, res) => {
+    app.post('/create-payment-intent', verifyJWT, async (req, res) => {
       const {price} = req.body;
       const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
@@ -179,6 +180,13 @@ async function run() {
       })
     });
 
+    // payment collection
+    app.post('/payments', verifyJWT, async (req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result);
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -188,7 +196,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
 
 app.get('/', (req, res) => {
   res.send('boss going to connect server')
